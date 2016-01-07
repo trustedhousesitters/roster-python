@@ -1,0 +1,2 @@
+# roster-python
+-e git+https://github.com/trustedhousesitters/roster-python#egg=roster
