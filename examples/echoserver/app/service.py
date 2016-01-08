@@ -15,10 +15,9 @@ def main():
         client = roster.NewClient(roster.WebServiceConfig())
 
     CONN_HOST, err = client.GetLocalIP()
-    if err is None {
+    if err is None:
         print >>sys.stderr, err
         exit(1)
-    }
 
     endpoint = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     endpoint.bind((CONN_HOST, CONN_PORT))

@@ -17,15 +17,15 @@ TTL = 5
 
 class Service(object):
 
-    def __init__(self, Name, Endpoint, Expiry=None, stopHeatbeat=False, *args, **kwargs):
+    def __init__(self, Name, Endpoint, Expiry=None, stopHeartbeat=False, *args, **kwargs):
         self.Name = Name
         self.Endpoint = Endpoint
         self.Expiry = Expiry # unix timestamp
-        self.stopHeatbeat = stopHeatbeat
+        self.stopHeartbeat = stopHeartbeat
 
     # Unregister the service
     def Unregister(self):
-        self.stopHeatbeat = True
+        self.stopHeartbeat = True
 
 class BaseConfig(object):
 
@@ -181,7 +181,7 @@ class Client(object):
 def heartbeat_check(client):
     # with CleanExit():
     while True:
-        if client.service.stop_heartbeat:
+        if client.service.stopHeartbeat:
             break
 
         time.sleep(HEARTBEAT_INTERVAL)
