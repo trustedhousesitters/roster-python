@@ -78,9 +78,7 @@ class LocalConfig(BaseConfig):
         return DynamoDBConnection(
             host=endpoint_data.hostname,
             port=endpoint_data.port, 
-            aws_access_key_id='foo', 
-            aws_secret_access_key='bar', 
-            region=self.region or 'us-west-2',
+            aws_secret_access_key='foo',
             is_secure=False
         )
 
