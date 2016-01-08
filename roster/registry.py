@@ -43,9 +43,14 @@ class Registry(object):
         return dynamodb_table.Table(**self.get_table_info())
 
     def IsActive(self):
-        desc = self.svc.describe_table(self.name)
-        status = desc.get('Table', {}).get('TableStatus')
-        return status == 'ACTIVE'
+        try:
+            desc = self.svc.describe_table(self.name)
+            status = desc.get('Table', {}).get('TableStatus')
+            return status == 'ACTIVE'
+        except Exception:
+            pass
+            
+        return False
 
     # Create table with 2 attributes (Name and Expiry)
     def Create(self):
