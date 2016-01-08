@@ -49,7 +49,7 @@ class Registry(object):
             return status == 'ACTIVE'
         except Exception:
             pass
-            
+
         return False
 
     # Create table with 2 attributes (Name and Expiry)
@@ -58,7 +58,7 @@ class Registry(object):
             table = dynamodb_table.Table.create(**self.get_table_info())
 
             # Table was created, but it's asynchronous...so block whilst it finishes being created
-            for _ in xrange(10):
+            for _ in xrange(30):
                 active = self.IsActive()
                 if active:
                     table, None
