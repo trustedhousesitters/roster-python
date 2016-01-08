@@ -19,10 +19,10 @@ TTL = 5
 class Service(object):
 
     def __init__(self, Name, Endpoint, Expiry=None, stopHeartbeat=False, *args, **kwargs):
-        self.Name = Name
-        self.Endpoint = Endpoint
-        self.Expiry = Expiry # unix timestamp
-        self.stopHeartbeat = stopHeartbeat
+        self.Name = Name.get('S') if isinstance(Name, dict) else Name
+        self.Endpoint = Endpoint.get('S') if isinstance(Endpoint, dict) else Endpoint
+        self.Expiry = int(Expiry.get('N')) if isinstance(Expiry, dict) else Expiry # unix timestamp
+        self.stopHeartbeat = int(stopHeartbeat.get('N')) if isinstance(stopHeartbeat, dict) else stopHeartbeat
 
     # Unregister the service
     def Unregister(self):
@@ -160,7 +160,7 @@ class Client(object):
         if count == 0:
             return None, Exception('roster: No matching service found')
         else:
-            return items['Items'][random.randint(0, count - 1)], None
+            return Service(**items['Items'][random.randint(0, count - 1)]), None
 
     # Returns the non loopback local IP of the host the client is running on
     def GetLocalIP(self):
