@@ -15,10 +15,10 @@ Instead of having to manage a separate distributed key store like etcd or ZooKee
 
 ### Examples
 
-** Server **
+**Server**
     docker run -it -p=3333:3333 -e "DYNAMODB_LOCAL_ENDPOINT=tcp://192.168.99.100:32768" roster-python/example-echo-server
 
-** Client **
+**Client**
     docker run -it -e "DYNAMODB_LOCAL_ENDPOINT=tcp://192.168.99.100:32768" roster-python/example-echo-client
 
 > Set the `DYNAMODB_LOCAL_ENDPOINT` to your local dynamodb 
