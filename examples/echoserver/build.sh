@@ -1,1 +1,1 @@
-docker build -t roster-python/example-echo-server .
+docker build --no-cache -t roster-python/example-echo-server .

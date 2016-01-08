@@ -88,7 +88,7 @@ class LocalConfig(BaseConfig):
             host=endpoint_data.hostname,
             port=endpoint_data.port, 
             aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key
+            aws_secret_access_key=aws_secret_access_key,
             is_secure=False
         )
 
