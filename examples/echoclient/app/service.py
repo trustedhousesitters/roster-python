@@ -18,7 +18,7 @@ def main():
         print >>sys.stderr, str(err)
         exit(1)
 
-    endpoint = service.get('Endpoint').get('S')
+    endpoint = service.Endpoint
     endpoint_data = urlparse(endpoint)
     print >>sys.stdout, 'connecting to %s port %s' % (endpoint_data.hostname, endpoint_data.port)
 

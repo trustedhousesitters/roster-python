@@ -69,5 +69,5 @@ class TestClient(unittest.TestCase):
         # TTL set to 5 seconds, so wait 6 seconds to see if expired
         time.sleep(6)
 
-        service, err = self.client.Discover('test-service-non-existing')
+        service, err = self.client.Discover('test-service')
         self.assertIsNone(service)
