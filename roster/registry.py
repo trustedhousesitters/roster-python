@@ -46,11 +46,11 @@ class Registry(object):
         try:
             desc = self.svc.describe_table(self.name)
             status = desc.get('Table', {}).get('TableStatus')
-            return status == 'ACTIVE'
-        except Exception:
-            pass
+            return status == 'ACTIVE', None
+        except Exception as e:
+            return False, str(e)
 
-        return False
+        return False, Exception('roster: Unknown error while creating the table')
 
     # Create table with 2 attributes (Name and Expiry)
     def Create(self):
@@ -58,14 +58,15 @@ class Registry(object):
             table = dynamodb_table.Table.create(**self.get_table_info())
 
             # Table was created, but it's asynchronous...so block whilst it finishes being created
-            for _ in xrange(30):
-                active = self.IsActive()
+            err = None
+            for _ in xrange(5):
+                active, err = self.IsActive()
                 if active:
-                    table, None
+                    return table, None
 
                 time.sleep(1)
 
-            return None, Exception('roster: Registry table has taken longer than expected to reach ACTIVE state')
+            return None, err or Exception('roster: Registry table has taken longer than expected to reach ACTIVE state')
 
         except Exception as e:
             return None, e
