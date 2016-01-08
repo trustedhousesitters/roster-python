@@ -138,7 +138,7 @@ class Client(object):
         item.save()
 
     # Query the registry for named service
-    def Discover(name):
+    def Discover(self, name):
         now = time.mktime(datetime.now().timetuple())
         items = self.svc.scan(
             self.registry.name,
