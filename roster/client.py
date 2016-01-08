@@ -64,9 +64,12 @@ class WebServiceConfig(BaseConfig):
         if self.region == '':
             self.region = "us-west-2"
 
+        aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID', '')
+        aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY', '') 
+
         return connect_to_region(self.region,
-            aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID', ''),
-            aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY', '') 
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key
         )
 
 class LocalConfig(BaseConfig):
@@ -78,10 +81,14 @@ class LocalConfig(BaseConfig):
     def GetConnection(self):
         endpoint_data = urlparse(self.endpoint)
 
+        aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID', 'foo')
+        aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY', 'bar')
+
         return DynamoDBConnection(
             host=endpoint_data.hostname,
             port=endpoint_data.port, 
-            aws_secret_access_key='foo',
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key
             is_secure=False
         )
 
@@ -156,7 +163,7 @@ class Client(object):
                     'S': name
                 },
                 ':ExpiryVal': {
-                    'N': now
+                    'N': str(now)
                 }
             }
         )
