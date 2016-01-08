@@ -47,7 +47,7 @@ def main():
                  
     except KeyboardInterrupt:
         pass
-    except Exception, e:
+    except Exception as e:
         print >>sys.stderr, 'Error: "%s"' % str(e)
     finally:
         print >>sys.stdout, 'closing socket'

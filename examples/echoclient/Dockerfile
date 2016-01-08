@@ -1,5 +1,5 @@
 FROM python
-COPY /app ~/app
-RUN pip install -r ~/app/requirements.txt
+ADD app /app
+RUN pip install -r /app/requirements.txt
 
-ENTRYPOINT ["python ~/app/service.py"]
+CMD ["python", "/app/service.py"]

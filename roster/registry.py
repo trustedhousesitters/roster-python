@@ -62,7 +62,7 @@ class Registry(object):
 
             return None, Exception('roster: Registry table has taken longer than expected to reach ACTIVE state')
 
-        except Exception, e:
+        except Exception as e:
             return None, e
 
     # Delete the registry
