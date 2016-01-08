@@ -126,7 +126,7 @@ class Client(object):
             return
 
         # Update service Expiry based on TTL and current time
-        self.service.Expiry = time.mktime(datetime.now().timetuple()) + TTL
+        self.service.Expiry = int(time.mktime(datetime.now().timetuple())) + TTL
 
         table = self.registry.Table()
 
@@ -144,7 +144,7 @@ class Client(object):
 
     # Query the registry for named service
     def Discover(self, name):
-        now = time.mktime(datetime.now().timetuple())
+        now = int(time.mktime(datetime.now().timetuple()))
         items = self.svc.scan(
             self.registry.name,
             filter_expression = 'Expiry > :ExpiryVal AND #N = :NameVal',
