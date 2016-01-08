@@ -23,7 +23,7 @@ def main():
     endpoint.bind((CONN_HOST, CONN_PORT))
     endpoint_str = 'tcp://{0}:{1}'.format(CONN_HOST, CONN_PORT)
 
-    service, err = client.Register('roster', endpoint_str)
+    service, err = client.Register('echo', endpoint_str)
     if err:
         print >>sys.stderr, str(err)
         exit(1)

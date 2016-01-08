@@ -1,1 +1,1 @@
-docker build -t roster-python/example-echo-client .
+docker build -t roster-python/example-echo-server .

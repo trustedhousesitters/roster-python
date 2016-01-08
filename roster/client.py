@@ -73,7 +73,6 @@ class LocalConfig(BaseConfig):
 
     def GetConnection(self):
         endpoint_data = urlparse(self.endpoint)
-        print endpoint_data
 
         return DynamoDBConnection(
             host=endpoint_data.hostname,
