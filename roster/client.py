@@ -121,7 +121,7 @@ class Client(object):
     def heartbeat(self):
         if self.service.stopHeartbeat:
             return
-            
+
         # Update service Expiry based on TTL and current time
         self.service.Expiry = time.mktime(datetime.now().timetuple()) + TTL
 

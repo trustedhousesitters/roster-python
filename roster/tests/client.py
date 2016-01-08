@@ -23,7 +23,7 @@ class TestClient(unittest.TestCase):
 
         endpoint_str = 'tcp://{0}:{1}'.format(CONN_HOST, CONN_PORT)
 
-        service, err = self.client.Register('test-service', endpoint_str)
+        service, err = self.client.Register('test-service-1', endpoint_str)
         if err:
             print >>sys.stderr, str(err)
             exit(1)
@@ -39,15 +39,15 @@ class TestClient(unittest.TestCase):
 
         endpoint_str = 'tcp://{0}:{1}'.format(CONN_HOST, CONN_PORT)
 
-        service, err = self.client.Register('test-service', endpoint_str)
+        service, err = self.client.Register('test-service-2', endpoint_str)
         if err:
             print >>sys.stderr, str(err)
             exit(1)
         self.assertIsNone(err)
 
-        service, err = self.client.Discover('test-service')
+        service2, err = self.client.Discover('test-service-2')
         self.assertIsNone(err)
-        self.assertEqual(service.Endpoint, endpoint_str)
+        self.assertEqual(service2.Endpoint, endpoint_str)
 
         service.Unregister()
 
@@ -61,7 +61,7 @@ class TestClient(unittest.TestCase):
 
         endpoint_str = 'tcp://{0}:{1}'.format(CONN_HOST, CONN_PORT)
 
-        service, err = self.client.Register('test-service', endpoint_str)
+        service, err = self.client.Register('test-service-3', endpoint_str)
         self.assertIsNone(err)
 
         service.Unregister()
@@ -69,5 +69,5 @@ class TestClient(unittest.TestCase):
         # TTL set to 5 seconds, so wait 6 seconds to see if expired
         time.sleep(6)
 
-        service, err = self.client.Discover('test-service')
-        self.assertIsNone(service)
+        service2, err = self.client.Discover('test-service-3')
+        self.assertIsNone(service2)
