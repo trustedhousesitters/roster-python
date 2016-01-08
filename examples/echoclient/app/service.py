@@ -1,7 +1,7 @@
 import socket
 import os
 import sys
-import urlparse
+from urlparse import urlparse
 
 import roster
 
@@ -18,19 +18,20 @@ def main():
         print >>sys.stderr, str(err)
         exit(1)
 
-    endpoint_data = urlparse(service)
+    endpoint = service.get('Endpoint').get('S')
+    endpoint_data = urlparse(endpoint)
+    print >>sys.stdout, 'connecting to %s port %s' % (endpoint_data.hostname, endpoint_data.port)
 
     # Create a TCP/IP socket
     endpoint = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Connect the socket to the port where the server is listening
-    print >>sys.stdiyt, 'connecting to %s port %s' % server_address
     endpoint.connect((endpoint_data.hostname, endpoint_data.port))
 
-    while True:
-        message = raw_input("Enter your message: ")
+    try:
+        while True:
+            message = raw_input("Enter your message: ")
 
-        try:
             # Send data
             print >>sys.stdout, 'sending "%s"' % message
             endpoint.sendall(message)
@@ -40,13 +41,17 @@ def main():
             amount_expected = len(message)
             
             while amount_received < amount_expected:
-                data = endpoint.recv(16)
+                data = endpoint.recv(1024)
                 amount_received += len(data)
                 print >>sys.stdout, 'received "%s"' % data
-
-        finally:
-            print >>sys.stdout, 'closing socket'
-            endpoint.close()
+                 
+    except KeyboardInterrupt:
+        pass
+    except Exception, e:
+        print >>sys.stderr, 'Error: "%s"' % str(e)
+    finally:
+        print >>sys.stdout, 'closing socket'
+        endpoint.close()
 
 if __name__ == '__main__':
     main()

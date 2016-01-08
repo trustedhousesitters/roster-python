@@ -1,10 +1,30 @@
 import os
-import socket
 import sys
+import socket
+import threading
 
 import roster
 
 CONN_PORT = 3333
+
+def client_thread(connection, client_address):
+    try:
+        print >>sys.stderr, 'connection from', client_address
+
+        # Receive the data in small chunks and retransmit it
+        while True:
+            data = connection.recv(1024)
+            print >>sys.stderr, 'received "%s"' % data
+            if data:
+                print >>sys.stderr, 'sending data back to the client'
+                connection.sendall(data)
+            else:
+                print >>sys.stderr, 'no more data from', client_address
+                break
+            
+    finally:
+        # Clean up the connection
+        connection.close()
 
 def main():
     # Check to see if running Dynamodb Locally or in AWS
@@ -29,30 +49,21 @@ def main():
         exit(1)
 
     # Listen for incoming connections
-    endpoint.listen(1)
+    endpoint.listen(10)
 
-    while True:
-        # Wait for a connection
-        print >>sys.stderr, 'waiting for a connection'
-        connection, client_address = endpoint.accept()
-
-        try:
-            print >>sys.stderr, 'connection from', client_address
-
-            # Receive the data in small chunks and retransmit it
-            while True:
-                data = connection.recv(16)
-                print >>sys.stderr, 'received "%s"' % data
-                if data:
-                    print >>sys.stderr, 'sending data back to the client'
-                    connection.sendall(data)
-                else:
-                    print >>sys.stderr, 'no more data from', client_address
-                    break
-                
-        finally:
-            # Clean up the connection
-            connection.close()
+    try:
+        while True:
+            connection, client_address = endpoint.accept()
+            t = threading.Thread(target=client_thread, args=(connection, client_address,))
+            t.daemon = True # causes the thread to terminate when the main process ends.
+            t.start()
+    except KeyboardInterrupt:
+        pass
+    except Exception, e:
+        print >>sys.stderr, 'Error: "%s"' % str(e)
+    finally:
+        print >>sys.stdout, 'closing server'
+        service.Unregister()
 
 if __name__ == '__main__':
     main()
