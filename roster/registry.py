@@ -11,7 +11,7 @@ class Registry(object):
     # Does the registry exist
     def Exists(self):
         try:
-            self.Table()
+            self.svc.describe_table(self.name)
             return True
         except Exception:
             pass
