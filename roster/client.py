@@ -156,7 +156,7 @@ class Client(object):
                     'S': name
                 },
                 ':ExpiryVal': {
-                    'N': now
+                    'N': str(now)
                 }
             }
         )
