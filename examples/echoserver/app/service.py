@@ -1,7 +1,10 @@
 import os
 import sys
+import time
 import socket
+import signal
 import threading
+from datetime import datetime, timedelta
 
 import roster
 
@@ -21,7 +24,7 @@ def client_thread(connection, client_address):
             else:
                 print >>sys.stderr, 'no more data from', client_address
                 break
-            
+
     finally:
         # Clean up the connection
         connection.close()
@@ -46,7 +49,6 @@ def main():
 
     # Listen for incoming connections
     conn.listen(10)
-
     connections = []
 
     try:
@@ -57,15 +59,18 @@ def main():
             t.daemon = True # causes the thread to terminate when the main process ends.
             t.start()
     except KeyboardInterrupt:
-        pass
+        service.Unregister()
+        time.sleep(5)
     except Exception as e:
         print >>sys.stderr, 'Error: "%s"' % str(e)
     finally:
-        print >>sys.stdout, 'closing server'
-        service.Unregister()
-
         for connection in connections:
             connection.close()
 
+def signal_handler(signal, frame):
+    time.sleep(5)
+    sys.exit(0)
+
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, signal_handler)
     main()
