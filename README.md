@@ -16,13 +16,13 @@ Instead of having to manage a separate distributed key store like etcd or ZooKee
 ### Examples
 
 **Server**
-    docker run -it -p=3333:3333 -e "DYNAMODB_LOCAL_ENDPOINT=tcp://192.168.99.100:32768" roster-python/example-echo-server
+    docker run -it -p=3333:3333 -e "DYNAMODB_ENDPOINT=tcp://192.168.99.100:32768" roster-python/example-echo-server
     
     AWS_ACCESS_KEY_ID=`grep aws_access_key_id ~/.boto | awk '{print $3}'`; AWS_SECRET_ACCESS_KEY=`grep aws_secret_access_key ~/.boto | awk '{print $3}'`; docker run -it -p=3333:3333 -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY roster-python/example-echo-server
 
 **Client**
-    docker run -it -e "DYNAMODB_LOCAL_ENDPOINT=tcp://192.168.99.100:32768" roster-python/example-echo-client
+    docker run -it -e "DYNAMODB_ENDPOINT=tcp://192.168.99.100:32768" roster-python/example-echo-client
 
     AWS_ACCESS_KEY_ID=`grep aws_access_key_id ~/.boto | awk '{print $3}'`; AWS_SECRET_ACCESS_KEY=`grep aws_secret_access_key ~/.boto | awk '{print $3}'`; docker run -it -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY roster-python/example-echo-client
 
-> Set the `DYNAMODB_LOCAL_ENDPOINT` to your local dynamodb 
+> Set the `DYNAMODB_ENDPOINT` to your local dynamodb 
