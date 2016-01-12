@@ -14,7 +14,8 @@ def connect(client, service_name='echo'):
     endpoint_data = urlparse(service.Endpoint)
     print >>sys.stdout, 'connecting to %s port %s' % (endpoint_data.hostname, endpoint_data.port)
 
-    conn = client.get_endpoint(host=endpoint_data.hostname, port=endpoint_data.port)
+    conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    conn.bind((endpoint_data.hostname, endpoint_data.port))
     return conn
 
 def main():

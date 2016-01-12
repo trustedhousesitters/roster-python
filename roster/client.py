@@ -189,19 +189,6 @@ class Client(object):
 
         return '', Exception("roster: No non loopback local IP address could be found")
 
-    def new_connection(self, host=None, port=None):
-        if not host:
-            CONN_HOST, err = self.get_local_ip()
-            if err is None:
-                print >>sys.stderr, err
-                return None
-        else:
-            CONN_HOST = host
-
-        conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        conn.bind((CONN_HOST, port or CONN_PORT))
-        return conn
-
 
 # Heartbeat function - updates expiry
 def heartbeat_check(client):

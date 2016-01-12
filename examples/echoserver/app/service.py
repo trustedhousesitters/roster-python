@@ -28,9 +28,15 @@ def client_thread(connection, client_address):
 
 def main():
     client = roster.Client.new()
-    conn = client.new_connection()
-    
-    CONN_HOST, CONN_PORT = conn.getsockname()
+
+    CONN_HOST, err = client.get_local_ip()
+    if err is None:
+        print >>sys.stderr, err
+        return None
+
+    conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    conn.bind((CONN_HOST, CONN_PORT))
+
     endpoint_repr = 'tcp://{0}:{1}'.format(CONN_HOST, CONN_PORT)
 
     service, err = client.Register('echo', endpoint_repr)
