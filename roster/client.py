@@ -98,7 +98,7 @@ class Client(object):
         self.registry = registry
 
     @classmethod
-    def new(*args, **kwargs):
+    def new(cls, *args, **kwargs):
         config = ClientConfig(*args, **kwargs)
         svc =  config.GetConnection()
         registry = NewRegistry(svc, config.GetRegistryName())
