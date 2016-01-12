@@ -27,33 +27,26 @@ def client_thread(connection, client_address):
         connection.close()
 
 def main():
-    # Check to see if running Dynamodb Locally or in AWS
-    dle = os.getenv('DYNAMODB_LOCAL_ENDPOINT', '') 
-    if dle != '':
-        client = roster.NewClient(roster.LocalConfig(endpoint=dle))
-    else:
-        client = roster.NewClient(roster.WebServiceConfig())
+    client = roster.Client.new()
+    conn = client.new_connection()
+    
+    CONN_HOST, CONN_PORT = conn.getsockname()
+    endpoint_repr = 'tcp://{0}:{1}'.format(CONN_HOST, CONN_PORT)
 
-    CONN_HOST, err = client.GetLocalIP()
-    if err is None:
-        print >>sys.stderr, err
-        exit(1)
-
-    endpoint = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    endpoint.bind((CONN_HOST, CONN_PORT))
-    endpoint_str = 'tcp://{0}:{1}'.format(CONN_HOST, CONN_PORT)
-
-    service, err = client.Register('echo', endpoint_str)
+    service, err = client.Register('echo', endpoint_repr)
     if err:
         print >>sys.stderr, str(err)
         exit(1)
 
     # Listen for incoming connections
-    endpoint.listen(10)
+    conn.listen(10)
+
+    connections = []
 
     try:
         while True:
-            connection, client_address = endpoint.accept()
+            connection, client_address = conn.accept()
+            connections.append(connection)
             t = threading.Thread(target=client_thread, args=(connection, client_address,))
             t.daemon = True # causes the thread to terminate when the main process ends.
             t.start()
@@ -64,6 +57,9 @@ def main():
     finally:
         print >>sys.stdout, 'closing server'
         service.Unregister()
+
+        for connection in connections:
+            connection.close()
 
 if __name__ == '__main__':
     main()

@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='roster',
+    name='roster', 
     version='1.0',
     description='Roster: A library for simple service discovery using Dynamodb for Python',
     long_description=open('README.md').read(),

@@ -28,11 +28,22 @@ class Service(object):
     def Unregister(self):
         self.stopHeartbeat = True
 
-class BaseConfig(object):
+class ClientConfig(object):
 
     def __init__(self, registry_name='', *args, **kwargs):
         self.registry_name = registry_name
         self.region = ''
+
+        endpoint = os.getenv('DYNAMODB_ENDPOINT', '') 
+        if endpoint != '':
+            self.endpoint = endpoint    
+            self.endpoint_data = urlparse(self.endpoint)
+
+    def SetRegion(self, region):
+        """
+        Set region
+        """
+        self.region = region
 
     def GetRegistryName(self):
         """
@@ -47,15 +58,6 @@ class BaseConfig(object):
         return self.endpoint
         
     def GetConnection(self):
-        raise NotImplementedError("Subclasses shouls implement this!")
-
-class WebServiceConfig(BaseConfig):
-    from boto.dynamodb2.layer1 import DynamoDBConnection
-
-    def SetRegion(self, region):
-        self.region = region
-
-    def GetConnection(self):
         # Environment var
         if self.region == '':
             self.region = os.getenv('AWS_REGION', '') 
@@ -67,30 +69,19 @@ class WebServiceConfig(BaseConfig):
         aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID', '')
         aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY', '') 
 
-        return connect_to_region(self.region,
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key
-        )
-
-class LocalConfig(BaseConfig):
-
-    def __init__(self, endpoint, *args, **kwargs):
-        super(LocalConfig, self).__init__(*args, **kwargs)
-        self.endpoint = endpoint
-
-    def GetConnection(self):
-        endpoint_data = urlparse(self.endpoint)
-
-        aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID', 'foo')
-        aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY', 'bar')
-
-        return DynamoDBConnection(
-            host=endpoint_data.hostname,
-            port=endpoint_data.port, 
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
-            is_secure=False
-        )
+        if self.endpoint:
+            return DynamoDBConnection(
+                host=self.endpoint_data.hostname,
+                port=self.endpoint_data.port, 
+                aws_access_key_id=aws_access_key_id,
+                aws_secret_access_key=aws_secret_access_key,
+                is_secure=False
+            )
+        else:
+            return connect_to_region(self.region,
+                aws_access_key_id=aws_access_key_id,
+                aws_secret_access_key=aws_secret_access_key
+            )
 
 class CleanExit(object):
     def __enter__(self):
@@ -105,6 +96,14 @@ class Client(object):
         self.svc = svc
         self.config = config
         self.registry = registry
+
+    @classmethod
+    def new(*args, **kwargs):
+        config = ClientConfig(*args, **kwargs)
+        svc =  config.GetConnection()
+        registry = NewRegistry(svc, config.GetRegistryName())
+
+        return Client(svc=svc, config=config, registry=registry)
 
     # Register the service in the registry
     def Register(self, name, endpoint):
@@ -128,12 +127,14 @@ class Client(object):
         return self.service, None
 
     # Heartbeat function - updates expiry
-    def heartbeat(self):
-        if self.service.stopHeartbeat:
-            return
+    def heartbeat(self, terminate=False):
+        # if self.service.stopHeartbeat:
+        #     return
 
         # Update service Expiry based on TTL and current time
-        self.service.Expiry = int(time.mktime(datetime.now().timetuple())) + TTL
+        self.service.Expiry = int(time.mktime(datetime.now().timetuple()))
+        if not terminate:
+            self.service.Expiry += TTL
 
         table = self.registry.Table()
 
@@ -176,7 +177,7 @@ class Client(object):
             return Service(**items['Items'][random.randint(0, count - 1)]), None
 
     # Returns the non loopback local IP of the host the client is running on
-    def GetLocalIP(self):
+    def get_local_ip(self):
         import socket
         try:
             for ip in socket.gethostbyname_ex(socket.gethostname())[2]:
@@ -188,18 +189,27 @@ class Client(object):
 
         return '', Exception("roster: No non loopback local IP address could be found")
 
+    def new_connection(self, host=None, port=None):
+        if not host:
+            CONN_HOST, err = self.get_local_ip()
+            if err is None:
+                print >>sys.stderr, err
+                return None
+        else:
+            CONN_HOST = host
+
+        conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        conn.bind((CONN_HOST, port or CONN_PORT))
+        return conn
+
+
 # Heartbeat function - updates expiry
 def heartbeat_check(client):
     # with CleanExit():
     while True:
         if client.service.stopHeartbeat:
+            client.heartbeat(terminate=True)
             break
 
         time.sleep(HEARTBEAT_INTERVAL)
         client.heartbeat()
-
-def NewClient(config):
-    svc =  config.GetConnection()
-    registry = NewRegistry(svc, config.GetRegistryName())
-
-    return Client(svc=svc, config=config, registry=registry)

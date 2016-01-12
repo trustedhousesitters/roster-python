@@ -5,53 +5,46 @@ from urlparse import urlparse
 
 import roster
 
-def main():
-    # Check to see if running Dynamodb Locally or in AWS
-    dle = os.getenv('DYNAMODB_LOCAL_ENDPOINT', '') 
-    if dle != '':
-        client = roster.NewClient(roster.LocalConfig(endpoint=dle))
-    else:
-        client = roster.NewClient(roster.WebServiceConfig())
-
-    service, err = client.Discover('echo')
+def connect(client, service_name='echo'):
+    service, err = client.Discover(service_name)
     if err:
         print >>sys.stderr, str(err)
         exit(1)
 
-    endpoint = service.Endpoint
-    endpoint_data = urlparse(endpoint)
+    endpoint_data = urlparse(service.Endpoint)
     print >>sys.stdout, 'connecting to %s port %s' % (endpoint_data.hostname, endpoint_data.port)
 
-    # Create a TCP/IP socket
-    endpoint = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    conn = client.get_endpoint(host=endpoint_data.hostname, port=endpoint_data.port)
+    return conn
 
-    # Connect the socket to the port where the server is listening
-    endpoint.connect((endpoint_data.hostname, endpoint_data.port))
+def main():
+    client = roster.Client.new()
 
-    try:
-        while True:
+    while True:
+        try:
             message = raw_input("Enter your message: ")
+            conn = connect(client)
 
             # Send data
             print >>sys.stdout, 'sending "%s"' % message
-            endpoint.sendall(message)
+            conn.sendall(message)
 
             # Look for the response
             amount_received = 0
             amount_expected = len(message)
             
             while amount_received < amount_expected:
-                data = endpoint.recv(1024)
+                data = conn.recv(1024)
                 amount_received += len(data)
                 print >>sys.stdout, 'received "%s"' % data
                  
-    except KeyboardInterrupt:
-        pass
-    except Exception as e:
-        print >>sys.stderr, 'Error: "%s"' % str(e)
-    finally:
-        print >>sys.stdout, 'closing socket'
-        endpoint.close()
+        except KeyboardInterrupt:
+            pass
+        except Exception as e:
+            print >>sys.stderr, 'Error: "%s"' % str(e)
+        finally:
+            print >>sys.stdout, 'closing socket'
+            conn.close()
 
 if __name__ == '__main__':
     main()
