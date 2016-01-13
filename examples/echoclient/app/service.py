@@ -7,93 +7,74 @@ from urlparse import urlparse
 
 import roster
 
-MAX_RECONNECT_TRY = 10
-
-def connect(client, service_name='echo'):
-    service, err = client.Discover(service_name)
-    if err:
-        print >>sys.stderr, str(err)
-
-    endpoint_data = urlparse(service.Endpoint)
-    print >>sys.stdout, 'connecting to %s port %s' % (endpoint_data.hostname, endpoint_data.port)
-
-    conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    conn.settimeout(5)
-    conn.connect((endpoint_data.hostname, endpoint_data.port))
-    return conn, endpoint_data
-
 def main():
     client = roster.Client.new()
 
     conn = None
     endpoint_data = None
     message_count = 1
-    reconnect_try = 0
 
-    try:
-        while True:
-            try:
-                if not conn:
-                    print >>sys.stdout, 'Connecting... %d' % reconnect_try 
-                    conn, endpoint_data = connect(client)
-                    reconnect_try += 1
-                    if reconnect_try == MAX_RECONNECT_TRY:
-                        raise KeyboardInterrupt()
+    while True:
+        try:
+            service, err = client.Discover('echo')
+            if err:
+                print >>sys.stderr, str(err)
 
-                # message = raw_input("Enter your message: ")
-                message = 'My message %d' % message_count
-                message_count += 1
-                
-                # Send data
-                print >>sys.stdout, 'sending "%s" to "%s:%d"' % (message, endpoint_data.hostname, endpoint_data.port)
-                
-                # conn.setblocking(0)
-                # status = conn.sendall(message)
-                # conn.setblocking(1)
+            endpoint_data = urlparse(service.Endpoint)
+            print >>sys.stdout, 'connecting to %s port %s' % (endpoint_data.hostname, endpoint_data.port)
 
-                buffer = message
-                while buffer:
-                    bytes = conn.send(buffer)
-                    buffer = buffer[bytes:]
+            conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            conn.settimeout(5)
+            conn.connect((endpoint_data.hostname, endpoint_data.port))
 
-                # Look for the response
-                amount_received = 0
-                amount_expected = len(message)
-                
-                data = ''
-                while amount_received < amount_expected:
-                    data += conn.recv(1024)
-                    amount_received += len(data)
-                    if amount_received > 0:
-                        print >>sys.stdout, 'received "%s"' % data
+            # message = raw_input("Enter your message: ")
+            message = 'My message %d' % message_count
+            message_count += 1
+            
+            # Send data
+            print >>sys.stdout, 'sending "%s" to "%s:%d"' % (message, endpoint_data.hostname, endpoint_data.port)
+            
+            # conn.setblocking(0)
+            # status = conn.sendall(message)
+            # conn.setblocking(1)
 
-                reconnect_try = 0
-            except socket.error, e:
-                # try to reconnect
-                # print >>sys.stderr, 'Socket Error: "%s, %d"' % (str(e), e.errno)
-                try: 
-                    conn.close()
-                except Exception:
-                    pass
-                finally:
-                    conn = None
-            except IOError, e:
-                if e.errno == errno.EPIPE:
-                    print >>sys.stderr, 'EPIPE IOError : "%s"' % str(e)
-                else:
-                    print >>sys.stderr, 'IOError : "%s"' % str(e)
-            except Exception as e:
-                print >>sys.stderr, 'Error: "%s"' % str(e)
+            buffer = message
+            while buffer:
+                bytes = conn.send(buffer)
+                buffer = buffer[bytes:]
 
-            # sleep for a second
-            time.sleep(1)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        if conn:
-            print >>sys.stdout, 'closing socket'
-            conn.close()
-        exit(1)
+            # Look for the response
+            amount_received = 0
+            amount_expected = len(message)
+            
+            data = ''
+            while amount_received < amount_expected:
+                data += conn.recv(1024)
+                amount_received += len(data)
+                if amount_received > 0:
+                    print >>sys.stdout, 'received "%s"' % data
+
+        except socket.error, e:
+            print >>sys.stderr, 'Socket Error: "%s, %d"' % (str(e), e.errno)
+        except IOError, e:
+            if e.errno == errno.EPIPE:
+                print >>sys.stderr, 'EPIPE IOError : "%s"' % str(e)
+            else:
+                print >>sys.stderr, 'IOError : "%s"' % str(e)
+        except KeyboardInterrupt:
+            print >>sys.stderr, 'Exiting...'
+            if conn:
+                print >>sys.stdout, 'closing connection'
+                conn.close()
+            exit(1)
+        except Exception as e:
+            print >>sys.stderr, 'Error: "%s"' % str(e)
+        finally:
+            if conn:
+                print >>sys.stdout, 'closing connection'
+                conn.close()
+
+        time.sleep(3)
 
 if __name__ == '__main__':
     main()
